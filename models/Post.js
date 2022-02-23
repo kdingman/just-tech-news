@@ -40,7 +40,12 @@ Post.init(
     // second parameter - configure the metadata
     {
         sequelize,
+        // timestamps: false = do not timestamp attributes(updated_at, created_at)
+        // timestamps: true = will timestamp attributes updated_at and created_at
+        // freezeTableName true = system will not default to plural table name
         freezeTableName: true,
+        // underscored - system will automatically camelCase names 
+        // true = will use underscores if entered that way
         underscored: true,
         modelName: 'post'
     }
