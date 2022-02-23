@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { Post, User, Vote } = require('../../models');
+const { Post, User, Vote, Comment } = require('../../models');
 
 const sequelize = require('../../config/connection');
 
@@ -8,6 +8,8 @@ router.get('/', (req, res) => {
     console.log('======================');
     Post.findAll({
         // Query Configuration
+        // order property is assigned a nested array, orders  most recent, descending order
+        order: [['created_at', 'DESC']],
         attributes: [
             'id',
             'post_url',
@@ -16,10 +18,17 @@ router.get('/', (req, res) => {
             // Total Vote Count for a Post
             [sequelize.literal('(SELECT COUNT (*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']
         ],
-        // order property is assigned a nested array, orders  most recent, descending order
-        order: [['created_at', 'DESC']],
         // JOIN = array of objects - to define the object reference the model and attributes
         include: [
+            {
+                model: Comment,
+                attributes: ['id', 'comment_text', 'post_id', 'user_id', 'created_at'],
+                // comment attaches to user model
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
             {
                 model: User,
                 attributes: ['username']
