@@ -68,11 +68,19 @@ router.post('/', (req, res) => {
         email: req.body.email,
         password: req.body.password
     })
-        .then(dbUserData => res.json(dbUserData))
-        .catch(err => {
-            console.log(err);
-            res.status(500).json(err);
+    .then(dbUserData => {
+        // want to make sure the session is created before we send the response back
+        // so we are wrapping the variables in a call back
+        // this sesssion will initiate the creation of the session and then run the call back function once complete
+        req.session.save(() => {
+            // this gives easy access to the user's user_id and username
+            req.session.user_id = dbUserData.id;
+            req.session.username = dbUserData.username;
+            req.session.loggedIn = true; // Boolean describing whether or not the user is logged in
+
+            res.json(dbUserData);
         });
+    })
 });
 
 // POST - login into user account
@@ -95,8 +103,28 @@ router.post('/login', (req, res) => {
                 res.status(400).json({ message: 'Incorrect password!' });
                 return;
             }
+
+            req.session.save(() => {
+                // declare session variables
+                req.session.user_id = dbUserData.id;
+                req.session.username = dbUserData.username;
+                req.session.loggedIn = true;
+            
             res.json({ user: dbUserData, message: 'You are now logged in!' });
         });
+    });
+});
+
+// Logout - destroy th4e session variables and reset the cookies
+router.post('/logout', (req, res) => {
+    if(req.session.loggedIn) {
+        req.session.destroy(() => {
+            res.status(204).end(); // send a 204 code after the session has been successfully destroyed
+        });
+    }
+    else {
+        res.status(404).end();
+    }
 });
 
 // PUT /api/users/1 - update exisiting data
