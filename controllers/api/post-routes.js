@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
             'title',
             'created_at',
             // Total Vote Count for a Post
-            [sequelize.literal('(SELECT COUNT (*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']
+            [sequelize.literal('(SELECT COUNT (*) FROM vote WHERE post_id = vote.post_id)'), 'vote_count']
         ],
         // JOIN = array of objects - to define the object reference the model and attributes
         include: [
@@ -55,7 +55,7 @@ router.get('/:id', (req, res) => {
             'title', 
             'created_at',
              // Total Vote Count for a Post
-             [sequelize.literal('(SELECT COUNT (*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']
+             [sequelize.literal('(SELECT COUNT (*) FROM vote WHERE post_id = vote.post_id)'), 'vote_count']
         ],
         include: [
             {
@@ -95,15 +95,19 @@ router.post('/', (req, res) => {
 // Put /api/posts/upvote - needs to be before :id route 
 // otherwise Express will think the word upvote is a valid param for :id
 router.put('/upvote', (req, res) => {
-    // Create the Vote
-    // custom static method created in models/Post.js
-    Post.upvote(req.body, { Vote })
-        .then(updatedPostData => res.json(updatedPostData))
+    // make sure the session exists first
+    if (req.session) {
+    // pass session id along with all destructured properties on req.body
+    // insert a new record in the vote table
+    Post.upvote({...req.body, user_id: req.session.user_id}, {Vote, Comment, User})
+        .then(updatedVoteData => res.json(updatedVoteData))
         .catch(err => {
             console.log(err);
-            res.status(400).json(err);
+            res.status(500).json(err);
         });
+    };
     });
+
 
 // Update Post Title
 router.put('/:id', (req, res) => {
