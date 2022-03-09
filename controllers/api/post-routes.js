@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { Post, User, Vote, Comment } = require('../../models');
 
 const sequelize = require('../../config/connection');
+const withAuth = require('../../utils/auth');
 
 // get all users
 router.get('/', (req, res) => {
@@ -9,14 +10,14 @@ router.get('/', (req, res) => {
     Post.findAll({
         // Query Configuration
         // order property is assigned a nested array, orders  most recent, descending order
-        order: [['created_at', 'DESC']],
+        //order: [['created_at', 'DESC']],
         attributes: [
             'id',
             'post_url',
             'title',
             'created_at',
             // Total Vote Count for a Post
-            [sequelize.literal('(SELECT COUNT (*) FROM vote WHERE post_id = vote.post_id)'), 'vote_count']
+            [sequelize.literal("(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)"), 'vote_count']
         ],
         // JOIN = array of objects - to define the object reference the model and attributes
         include: [
@@ -55,9 +56,17 @@ router.get('/:id', (req, res) => {
             'title', 
             'created_at',
              // Total Vote Count for a Post
-             [sequelize.literal('(SELECT COUNT (*) FROM vote WHERE post_id = vote.post_id)'), 'vote_count']
+             [sequelize.literal("(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)"), 'vote_count']
         ],
         include: [
+            {
+                model: Comment,
+                attributes: ['id', 'post_url', 'title', 'created_at'],
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
             {
                 model: User,
                 attributes: ['username']
@@ -78,12 +87,12 @@ router.get('/:id', (req, res) => {
 });
 
 // Create a Post
-router.post('/', (req, res) => {
+router.post('/', withAuth, (req, res) => {
     //expects {title: 'Taskmaster goes public!', post_url: 'https://taskmaster.com/press', user_id: 1}
     Post.create({
         title: req.body.title,
         post_url: req.body.post_url,
-        user_id: req.body.user_id
+        user_id: req.session.user_id
     })
         .then(dbPostData => res.json(dbPostData))
         .catch(err => {
@@ -94,7 +103,7 @@ router.post('/', (req, res) => {
 
 // Put /api/posts/upvote - needs to be before :id route 
 // otherwise Express will think the word upvote is a valid param for :id
-router.put('/upvote', (req, res) => {
+router.put('/upvote', withAuth, (req, res) => {
     // make sure the session exists first
     if (req.session) {
     // pass session id along with all destructured properties on req.body
@@ -110,7 +119,7 @@ router.put('/upvote', (req, res) => {
 
 
 // Update Post Title
-router.put('/:id', (req, res) => {
+router.put('/:id', withAuth, (req, res) => {
     Post.update(
         {
             title: req.body.title
@@ -135,7 +144,7 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE a Post
-router.delete('/:id', (req, res) => {
+router.delete('/:id', withAuth, (req, res) => {
     Post.destroy({
       where: {
         id: req.params.id

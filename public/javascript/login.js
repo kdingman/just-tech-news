@@ -48,7 +48,7 @@ const password = document.querySelector('#password-login').value.trim();
 
         // check the repsonse status
         if(response.ok) {
-            document.location.replace('/');
+            document.location.replace('/dashboard');
         }
         else {
             alert(response.statusText);
