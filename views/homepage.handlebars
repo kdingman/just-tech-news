@@ -2,18 +2,13 @@
   {{! #each = helpers - they will perform minimal logic like looping over an array}}
   {{#each posts as |post|}}
   <li>
-    <article class="post">
-      <div class="title">
-        <a href="{{post_url}}" target="_blank">{{title}}</a>
-        <span>({{post_url}})</span>
-      </div>
-      <div class="meta">
-        {{post.vote_count}} point(s) by {{post.user.username}} on
-        {{post.created_at}}
-        |
-        <a href="/post/{{id}}">{{post.comments.length}} comment(s)</a>
-      </div>
-    </article>
+    <ol class="post-list">
+      {{#each posts as |post|}}
+      <li>
+        {{> post-info post }}
+      </li>
+      {{/each}}
+    </ol>
   </li>
   {{/each}}
 </ol>

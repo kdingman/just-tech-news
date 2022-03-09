@@ -2,6 +2,8 @@ const express = require('express');
 const routes = require('./controllers');
 const sequelize = require('./config/connection');
 
+const helpers = require('./utils/helpers');
+
 // express-session & sequelize store
 const session = require('express-session');
 
@@ -19,7 +21,7 @@ const sess = {
 
 //Template Engine of Choice
 const exphbs = require('express-handlebars');
-const hbs = exphbs.create({});
+const hbs = exphbs.create({ helpers });
 
 const path = require('path');
 
