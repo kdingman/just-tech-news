@@ -1,0 +1,14 @@
+<ol class="post-list">
+  {{! #each = helpers - they will perform minimal logic like looping over an array}}
+  {{#each posts as |post|}}
+  <li>
+    <ol class="post-list">
+      {{#each posts as |post|}}
+      <li>
+        {{> post-info post }}
+      </li>
+      {{/each}}
+    </ol>
+  </li>
+  {{/each}}
+</ol>
